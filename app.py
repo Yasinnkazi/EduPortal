@@ -52,13 +52,13 @@ def inject_nav():
 
 @app.template_filter("money")
 def money(value):
-    """Format like PHP number_format((float)$x): e.g. 45000.0 -> '45,000'."""
+    """Thousands grouping: e.g. 45000.0 -> '45,000'."""
     return f"{float(value):,.0f}"
 
 
 @app.template_filter("pct")
 def pct(value):
-    """Format like PHP number_format((float)$x, 2): e.g. 88.0 -> '88.00'."""
+    """Two-decimal format: e.g. 88.0 -> '88.00'."""
     return f"{float(value):.2f}"
 
 
