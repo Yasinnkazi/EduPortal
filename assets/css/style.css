@@ -1,0 +1,202 @@
+/* ============================================================
+   EduPortal - modern university ERP styles
+   White background, blue primary, professional & responsive
+   ============================================================ */
+
+:root {
+    --ep-blue: #1a56db;
+    --ep-blue-dark: #123a8f;
+    --ep-blue-light: #e8f0fe;
+    --ep-slate: #475467;
+    --ep-border: #e4e7ec;
+}
+
+body {
+    background: #ffffff;
+    color: #1d2939;
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.brand-text { letter-spacing: -0.02em; }
+
+.navbar .nav-link {
+    color: #344054;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 0.5rem 0.7rem;
+}
+.navbar .nav-link:hover { color: var(--ep-blue); background: var(--ep-blue-light); }
+.navbar .nav-link.active { color: var(--ep-blue); background: var(--ep-blue-light); font-weight: 600; }
+
+/* Hero */
+.hero {
+    background: linear-gradient(135deg, #1a56db 0%, #123a8f 55%, #0b2a6b 100%);
+    color: #fff;
+    border-radius: 20px;
+    padding: 3.5rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+}
+.hero::after {
+    content: "";
+    position: absolute;
+    right: -90px;
+    top: -90px;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+}
+.hero::before {
+    content: "";
+    position: absolute;
+    right: 60px;
+    bottom: -110px;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+}
+.hero .display-6 { font-weight: 700; }
+.hero .badge-lab {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #fff;
+}
+
+/* Disclaimer banner */
+.disclaimer-banner {
+    background: #fff7e6;
+    border: 1px solid #f5c44e;
+    border-left: 5px solid #e8a400;
+    border-radius: 10px;
+    color: #7a5b00;
+}
+.disclaimer-banner h6 { color: #5f4500; }
+
+/* Cards */
+.card {
+    border: 1px solid var(--ep-border);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(16, 24, 40, 0.10);
+}
+.card .card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+/* Buttons */
+.btn { border-radius: 8px; font-weight: 600; }
+.btn-primary {
+    background: var(--ep-blue);
+    border-color: var(--ep-blue);
+}
+.btn-primary:hover { background: var(--ep-blue-dark); border-color: var(--ep-blue-dark); }
+.btn-outline-primary {
+    color: var(--ep-blue);
+    border-color: var(--ep-blue);
+}
+.btn-outline-primary:hover { background: var(--ep-blue); border-color: var(--ep-blue); }
+
+/* Forms */
+.form-control, .form-select { border-radius: 8px; border-color: #d0d5dd; }
+.form-control:focus, .form-select:focus {
+    border-color: var(--ep-blue);
+    box-shadow: 0 0 0 0.2rem rgba(26, 86, 219, 0.15);
+}
+
+/* Login cards */
+.auth-wrapper {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.auth-card {
+    width: 100%;
+    max-width: 440px;
+    border: 1px solid var(--ep-border);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(16, 24, 40, 0.10);
+}
+
+/* Tables */
+.table thead th {
+    background: #f8fafc;
+    color: #475467;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 2px solid var(--ep-border);
+}
+.table-hover tbody tr:hover { background: #f5f8ff; }
+
+/* SQL query display box */
+.sql-box {
+    background: #0f172a;
+    color: #7dd3fc;
+    border-radius: 10px;
+    font-family: "Cascadia Code", Consolas, monospace;
+    font-size: 0.85rem;
+    padding: 0.9rem 1rem;
+    word-break: break-all;
+}
+
+/* Stat tiles */
+.stat-tile {
+    border: 1px solid var(--ep-border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    background: #fff;
+}
+.stat-tile .stat-num { font-size: 1.6rem; font-weight: 700; color: var(--ep-blue); }
+
+/* Footer */
+.footer {
+    background: #0b2a6b;
+    color: #dbe6ff;
+}
+.footer a:hover { text-decoration: underline !important; }
+
+/* Notices */
+.notice-item {
+    border-left: 4px solid var(--ep-blue);
+    background: #f9fbff;
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+}
+
+.avatar-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--ep-blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.section-title {
+    font-weight: 700;
+    color: #101828;
+}
+.section-sub { color: var(--ep-slate); }
+
+.hero-search-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}

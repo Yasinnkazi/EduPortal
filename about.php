@@ -1,0 +1,51 @@
+<?php
+$pageTitle = "About";
+require_once "config.php";
+require_once "includes/header.php";
+?>
+<div class="row g-4">
+    <div class="col-lg-8">
+        <h4 class="section-title mb-3"><i class="bi bi-info-circle text-primary me-2"></i>About EduPortal</h4>
+        <p>EduPortal is a realistic educational student management portal built to feel and behave like a modern university ERP system. Students can log in, view their profiles and results; staff and administrators can browse the complete student, course and faculty directory.</p>
+        <p>Behind the polished interface, the application intentionally contains classic SQL Injection vulnerabilities. Every database interaction is written using raw SQL string concatenation with no prepared statements and no input escaping. This makes EduPortal a safe, self-contained laboratory for teaching how SQL Injection works and how it can be prevented.</p>
+
+        <h5 class="fw-bold mt-4 mb-2">The Educational Objective</h5>
+        <ul>
+            <li>Demonstrate how user input flows unsanitised into a SQL query.</li>
+            <li>Show how an attacker can bypass login using <code>' OR '1'='1</code>.</li>
+            <li>Show how to extract hidden data using <code>UNION SELECT</code>.</li>
+            <li>Explain the fix: prepared statements, parameterised queries and validation.</li>
+        </ul>
+
+        <h5 class="fw-bold mt-4 mb-2">Technology Stack</h5>
+        <div class="row g-2 mb-3">
+            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-filetype-html text-primary d-block fs-4"></i>HTML5</div></div>
+            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-filetype-css text-primary d-block fs-4"></i>CSS3</div></div>
+            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-bootstrap text-primary d-block fs-4"></i>Bootstrap 5</div></div>
+            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-filetype-php text-primary d-block fs-4"></i>PHP 8</div></div>
+            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-database text-primary d-block fs-4"></i>MySQL</div></div>
+            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-display text-primary d-block fs-4"></i>XAMPP</div></div>
+            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-filetype-js text-primary d-block fs-4"></i>JavaScript</div></div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card p-4">
+            <div class="text-center mb-3"><img src="assets/images/logo.svg" width="72" height="72" alt="EduPortal"></div>
+            <h6 class="fw-bold text-center">EduPortal Security Lab</h6>
+            <p class="small text-muted text-center">Built as an academic demonstration project.</p>
+            <hr>
+            <div class="small">
+                <div class="d-flex justify-content-between py-1"><span class="text-muted">Author</span><b>Mohd Yasin Kazi</b></div>
+                <div class="d-flex justify-content-between py-1"><span class="text-muted">Class</span><b>TY B.Sc. Computer Science</b></div>
+                <div class="d-flex justify-content-between py-1"><span class="text-muted">Purpose</span><b>SQLi Education</b></div>
+                <div class="d-flex justify-content-between py-1"><span class="text-muted">Server</span><b>XAMPP / Apache</b></div>
+            </div>
+        </div>
+
+        <div class="disclaimer-banner p-3 mt-3">
+            <h6 class="mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>WARNING</h6>
+            <p class="mb-0 small">This application is intentionally vulnerable and is designed ONLY for educational demonstrations of SQL Injection in a controlled laboratory environment. It must never be deployed on a public server.</p>
+        </div>
+    </div>
+</div>
+<?php require_once "includes/footer.php"; ?>
