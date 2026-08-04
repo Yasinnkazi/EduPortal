@@ -22,21 +22,21 @@
 **A.** An application that runs on a server and is accessed through a browser over HTTP/HTTPS, e.g., a student portal, e-commerce site or ERP.
 
 **Q5. What is a database?**
-**A.** An organised collection of data stored and managed by a database management system (DBMS) such as MySQL. Data is stored in tables with rows and columns.
+**A.** An organised collection of data stored and managed by a database management system (DBMS) such as SQLite or MySQL. Data is stored in tables with rows and columns.
 
 ## Technology
 
 **Q6. Which languages are used in EduPortal?**
-**A.** PHP 8 for the backend, HTML5 + CSS3 + Bootstrap 5 + JavaScript for the frontend, and MySQL for the database.
+**A.** Python 3 with the Flask framework for the backend, HTML5 + CSS3 + Bootstrap 5 + JavaScript for the frontend, and SQLite for the database. Templates are rendered with Jinja2.
 
-**Q7. What is XAMPP?**
-**A.** XAMPP is a free, cross-platform bundle containing Apache (web server), MySQL/MariaDB (database), PHP and Perl. It creates a complete local server environment.
+**Q7. What is Flask?**
+**A.** Flask is a lightweight web framework for Python. It provides routing (mapping URLs to functions), request handling, session management and template rendering, and includes a built-in development server (Werkzeug).
 
-**Q8. What is the role of Apache in this project?**
-**A.** Apache is the HTTP web server. It receives browser requests for `.php` files, hands them to PHP for execution, and returns the generated HTML.
+**Q8. What is SQLite and why was it chosen?**
+**A.** SQLite is an embedded, file-based relational database. It needs no separate server or configuration - the whole database is one file (`database.db`) created and seeded automatically on startup. This makes the lab easy to set up and reset.
 
-**Q9. How does PHP connect to MySQL?**
-**A.** Using `mysqli_connect("localhost", "root", "", "eduportal")` in `config.php`. The connection object `$conn` is then passed to `mysqli_query()`.
+**Q9. How does Python connect to SQLite in this project?**
+**A.** Using the built-in `sqlite3` module. `database.py` provides `get_db()` which opens a connection with `row_factory = sqlite3.Row` so query results can be accessed like dictionaries (e.g. `row["name"]`).
 
 **Q10. Why is Bootstrap used?**
 **A.** Bootstrap 5 provides responsive layout, pre-built components (navbar, cards, tables, buttons, forms) and icons, giving the portal a professional ERP look with minimal custom CSS.
@@ -44,25 +44,27 @@
 ## The Vulnerable Code
 
 **Q11. Where is the vulnerable code in EduPortal?**
-**A.** In every database interaction: `student-login.php`, `admin-login.php`, `student-search.php`, `results.php` and `dashboard.php`. All use direct string concatenation of user input into SQL.
+**A.** In every database interaction: the `student_login`, `admin_login`, `student_search`, `results` and `dashboard` routes in `app.py`. All use direct string concatenation of user input into SQL.
 
 **Q12. Show the vulnerable login query.**
 **A.**
-```php
-$sql = "SELECT * FROM students
-        WHERE username = '" . $username . "'
-        AND password = '" . $password . "'";
-$result = mysqli_query($conn, $sql);
+```python
+sql = ("SELECT * FROM students WHERE username = '"
+       + username
+       + "' AND password = '"
+       + password
+       + "'")
+rows = cursor.execute(sql).fetchall()
 ```
 
 **Q13. What is a prepared statement?**
-**A.** A prepared statement separates SQL structure from data. The query is sent to the DB once with placeholders (`?`), and user data is bound separately with `bind_param()`, so input can never alter the query logic.
+**A.** A prepared statement separates SQL structure from data. The query is sent to the DB once with placeholders (`?`), and user data is bound separately as parameters, so input can never alter the query logic. Example: `cursor.execute(sql, (username, password))`.
 
-**Q14. Why is `mysqli_query` dangerous here?**
-**A.** `mysqli_query()` executes whatever SQL string it is given. Because the string contains unsanitised user input, an attacker can inject additional SQL that MySQL happily executes.
+**Q14. Why is `cursor.execute(sql)` dangerous here?**
+**A.** `execute(sql)` runs whatever SQL string it is given. Because the string contains unsanitised user input, an attacker can inject additional SQL that SQLite happily executes.
 
 **Q15. What does "sanitisation" mean?**
-**A.** Cleaning or escaping user input so it is treated only as data, not as SQL (e.g., `mysqli_real_escape_string()`), plus validating input type/length.
+**A.** Cleaning or escaping user input so it is treated only as data, not as SQL (e.g. `sqlite3` `?` placeholders, escaping quotes), plus validating input type/length.
 
 ## Attack Demonstrations
 
@@ -74,9 +76,9 @@ WHERE username='x' AND password='' OR '1'='1'
 Due to operator precedence (`AND` before `OR`) this is `(false) OR (true)` = always true, so the query returns every student row and login succeeds.
 
 **Q17. What is comment-based injection?**
-**A.** Using `--` (SQL comment) to remove the rest of the query. For example `' OR '1'='1' -- ` turns:
+**A.** Using `--` (SQL comment) to remove the rest of the query. For example `aarav01' -- ` turns:
 ```sql
-WHERE username='' OR '1'='1' -- ' AND password='anything'
+WHERE username='aarav01' -- ' AND password='anything'
 ```
 The password check is commented out.
 
@@ -95,19 +97,16 @@ The password check is commented out.
 **A.** Authentication bypass, reading sensitive data, modifying/deleting records, extracting passwords, and potentially gaining shell access to the server.
 
 **Q22. Why does EduPortal store passwords in plain text?**
-**A.** It is part of the demonstration - so students can see the leak clearly. In real systems passwords must be hashed (e.g., `password_hash()` / bcrypt).
+**A.** It is part of the demonstration - so students can see the leak clearly. In real systems passwords must be hashed (e.g., bcrypt / `werkzeug.security.generate_password_hash`).
 
 **Q23. How can SQL Injection be prevented?**
 **A.** 1) Prepared statements / parameterised queries (primary defence). 2) Input validation (type, length, whitelist). 3) Principle of least privilege (DB user with minimal permissions). 4) Never concatenate user input into SQL.
 
 **Q24. Write the secure version of the login query.**
 **A.**
-```php
-$stmt = $conn->prepare(
-  "SELECT * FROM students WHERE username = ? AND password = ?");
-$stmt->bind_param("ss", $username, $password);
-$stmt->execute();
-$result = $stmt->get_result();
+```python
+sql = "SELECT * FROM students WHERE username = ? AND password = ?"
+rows = cursor.execute(sql, (username, password)).fetchall()
 ```
 
 **Q25. What is the principle of least privilege?**
@@ -116,7 +115,7 @@ $result = $stmt->get_result();
 ## Project-Specific
 
 **Q26. Which pages does EduPortal contain?**
-**A.** Home (`index.php`), About, Courses, Faculty, Student Login, Admin Login, Student Search, Result Portal, Dashboard, Contact, plus `logout.php`.
+**A.** Home (`/`), About, Courses, Faculty, Student Login, Admin Login, Student Search, Result Portal, Dashboard, Contact, plus a Logout route - all in `app.py` with templates under `templates/`.
 
 **Q27. What is stored in the `results` table?**
 **A.** Roll number, subject, marks, total, percentage, grade, exam type and semester - 81 rows seeded for demonstration.
@@ -128,7 +127,7 @@ $result = $stmt->get_result();
 **A.** It is an intentional teaching aid - students can see exactly how their input (or injection payload) changed the SQL before it ran.
 
 **Q30. Can this project be deployed on a public server?**
-**A.** **No.** It is intentionally vulnerable and must stay on local XAMPP for classroom demonstration only. This warning is repeated in the README, report, home page and footer.
+**A.** **No.** It is intentionally vulnerable and must stay in a controlled classroom/lab environment only. This warning is repeated in the README, report, home page and footer.
 
 ---
 

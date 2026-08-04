@@ -19,11 +19,11 @@ A Classroom Laboratory for Demonstrating SQL Injection
 
 # Web Applications & Databases
 
-- Most web apps store data in databases (MySQL).
+- Most web apps store data in databases (SQLite/MySQL).
 - Developers often build SQL by concatenating user input:
 
-```php
-"SELECT * FROM users WHERE username = '$username'"
+```python
+sql = f"SELECT * FROM users WHERE username = '{username}'"
 ```
 
 - If input is not validated/escaped, the attacker can **rewrite the SQL**.
@@ -51,12 +51,12 @@ Build a **realistic college portal** that is **intentionally vulnerable** to SQL
 | Layer     | Technology                |
 |-----------|---------------------------|
 | Frontend  | HTML5, CSS3, Bootstrap 5, JS |
-| Backend   | PHP 8                     |
-| Database  | MySQL                     |
-| Server    | XAMPP (Apache + MySQL)    |
+| Backend   | Python 3 + Flask          |
+| Database  | SQLite 3                  |
+| Server    | Flask / Werkzeug (WSGI)   |
 | Icons     | Bootstrap Icons           |
 
-Runs **100% offline** on localhost.
+Runs locally with just: `pip install flask` + `python app.py`
 
 ---
 
@@ -76,9 +76,9 @@ Every page feels like a real university ERP - white UI, blue theme, responsive.
 
 ## Slide 6 - Database Design
 
-# Database (eduportal)
+# Database (SQLite - database.db)
 
-5 tables, fully seeded:
+5 tables, fully seeded on startup:
 
 | Table   | Rows | Purpose            |
 |---------|------|--------------------|
@@ -96,16 +96,18 @@ Relationships: courses 1->* students 1->* results
 
 # The Vulnerable Pattern
 
-```php
-$sql = "SELECT * FROM students
-        WHERE username = '" . $username . "'
-        AND password = '" . $password . "'";
+```python
+sql = ("SELECT * FROM students WHERE username = '"
+       + username
+       + "' AND password = '"
+       + password
+       + "'")
 
-$result = mysqli_query($conn, $sql);
+rows = cursor.execute(sql).fetchall()
 ```
 
 - No prepared statements.
-- No `mysqli_real_escape_string`.
+- No escaping / validation.
 - No parameterisation - anywhere in the app.
 
 ---
@@ -127,7 +129,7 @@ WHERE username='x' AND password='' OR '1'='1'
 
 **Comment variant:**
 ```
-username = ' OR '1'='1' -- 
+username = aarav01' --
 ```
 The `--` comments out the password check.
 
@@ -139,8 +141,10 @@ The `--` comments out the password check.
 
 Result Portal, Roll Number field:
 ```
-BCS2026-001' UNION SELECT id, username, password,
-1, 2, 3.50, 'A', 'Exam', semester FROM students WHERE '1'='1
+BCS2026-001' UNION SELECT id, username,
+username || ' : ' || password,
+1, 2, 3.50, 'A', 'Exam', semester
+FROM students WHERE '1'='1
 ```
 
 - Appends `students` rows to the `results` output.
@@ -155,11 +159,9 @@ Lesson: input must never become SQL structure.
 # The Fix & Conclusion
 
 **Secure code (prepared statements):**
-```php
-$stmt = $conn->prepare(
-  "SELECT * FROM students WHERE username = ? AND password = ?");
-$stmt->bind_param("ss", $username, $password);
-$stmt->execute();
+```python
+sql = "SELECT * FROM students WHERE username = ? AND password = ?"
+rows = cursor.execute(sql, (username, password)).fetchall()
 ```
 
 **Conclusion:** EduPortal is a safe, realistic lab that turns SQL Injection from theory into a hands-on lesson - and shows exactly how to prevent it.

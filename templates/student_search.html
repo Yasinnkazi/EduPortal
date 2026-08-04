@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}EduPortal - Student Search{% endblock %}
+{% block content %}
+<h4 class="section-title mb-1"><i class="bi bi-person-lines-fill text-primary me-2"></i>Student Search</h4>
+<p class="section-sub mb-4">Search any enrolled student by Roll Number.</p>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card p-4">
+            <form method="POST" action="{{ url_for('student_search') }}">
+                <label class="form-label">Roll Number</label>
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                    <input type="text" name="roll_no" class="form-control" placeholder="e.g. BCS2026-001" value="{{ request.form.get('roll_no', '') }}" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>Search Student</button>
+            </form>
+
+            <div class="mt-3 p-2 rounded bg-warning bg-opacity-10 small text-dark border border-warning-subtle">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>Educational security lab - intentionally vulnerable search.
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        {% if executed_sql %}
+            <div class="mb-3">
+                <div class="small text-muted mb-1"><i class="bi bi-code-slash me-1"></i>Query executed</div>
+                <div class="sql-box">{{ executed_sql }}</div>
+            </div>
+        {% endif %}
+
+        {% if search_done and student %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar-circle me-3">{{ student.name[0]|upper }}</div>
+                        <div>
+                            <h5 class="fw-bold mb-0">{{ student.name }}</h5>
+                            <span class="badge text-bg-primary">{{ student.roll_no }}</span>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-sm-6"><div class="small text-muted">Course</div><div class="fw-semibold">{{ student.course_name or "N/A" }}</div></div>
+                        <div class="col-sm-6"><div class="small text-muted">Semester</div><div class="fw-semibold">Semester {{ student.semester }}</div></div>
+                        <div class="col-sm-6"><div class="small text-muted">Email</div><div class="fw-semibold">{{ student.email }}</div></div>
+                        <div class="col-sm-6"><div class="small text-muted">Phone</div><div class="fw-semibold">{{ student.phone }}</div></div>
+                        <div class="col-sm-6"><div class="small text-muted">City</div><div class="fw-semibold">{{ student.city }}</div></div>
+                        <div class="col-sm-6"><div class="small text-muted">Status</div><div class="fw-semibold text-success"><i class="bi bi-check-circle me-1"></i>Enrolled</div></div>
+                    </div>
+                </div>
+            </div>
+        {% elif search_done %}
+            <div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-1"></i>No student found with that roll number.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

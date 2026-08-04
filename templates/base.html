@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}EduPortal{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm border-bottom">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="EduPortal" width="36" height="36" class="me-2">
+            <span class="fw-bold brand-text">Edu<span class="text-primary">Portal</span></span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto ms-3">
+                {% for item in nav_items %}
+                <li class="nav-item">
+                    <a class="nav-link {% if active == item.endpoint %}active{% endif %}" href="{{ url_for(item.endpoint) }}">
+                        <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+                {% if session.get('student_id') or session.get('admin_id') %}
+                    <span class="me-2 text-muted small"><i class="bi bi-person-circle me-1"></i>{{ session.get('student_name') or session.get('admin_name') }}</span>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-sm">Dashboard</a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('student_login') }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-person-badge me-1"></i>Student Login</a>
+                    <a href="{{ url_for('admin_login') }}" class="btn btn-primary btn-sm"><i class="bi bi-shield-lock me-1"></i>Admin Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="py-4">
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<footer class="footer py-5 mt-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <h5 class="text-white fw-bold"><i class="bi bi-mortarboard me-2"></i>EduPortal</h5>
+                <p class="text-light small mb-0">Educational Student Management Portal. A realistic university ERP experience built for demonstrating SQL Injection vulnerabilities in a classroom laboratory.</p>
+            </div>
+            <div class="col-lg-2 col-6">
+                <h6 class="text-white">Quick Links</h6>
+                <ul class="list-unstyled small">
+                    <li><a href="{{ url_for('index') }}" class="text-light text-decoration-none">Home</a></li>
+                    <li><a href="{{ url_for('courses') }}" class="text-light text-decoration-none">Courses</a></li>
+                    <li><a href="{{ url_for('faculty') }}" class="text-light text-decoration-none">Faculty</a></li>
+                    <li><a href="{{ url_for('student_search') }}" class="text-light text-decoration-none">Student Search</a></li>
+                    <li><a href="{{ url_for('results') }}" class="text-light text-decoration-none">Result Portal</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-6">
+                <h6 class="text-white">Portals</h6>
+                <ul class="list-unstyled small">
+                    <li><a href="{{ url_for('student_login') }}" class="text-light text-decoration-none">Student Login</a></li>
+                    <li><a href="{{ url_for('admin_login') }}" class="text-light text-decoration-none">Admin Login</a></li>
+                    <li><a href="{{ url_for('dashboard') }}" class="text-light text-decoration-none">Dashboard</a></li>
+                    <li><a href="{{ url_for('contact') }}" class="text-light text-decoration-none">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3">
+                <h6 class="text-white">Contact</h6>
+                <ul class="list-unstyled small text-light">
+                    <li><i class="bi bi-geo-alt me-2"></i>Education Campus, Mumbai</li>
+                    <li><i class="bi bi-telephone me-2"></i>+91 98 2001 0000</li>
+                    <li><i class="bi bi-envelope me-2"></i>info@eduportal.ac.in</li>
+                </ul>
+            </div>
+        </div>
+        <hr class="border-secondary">
+        <div class="text-center small text-light">
+            &copy; {{ now.year }} EduPortal &middot; Author: Mohd Yasin Kazi &middot; TY B.Sc. Computer Science
+        </div>
+        <div class="text-center small mt-2">
+            <span class="badge text-bg-warning">Security Lab - Educational Use Only</span>
+        </div>
+    </div>
+</footer>
+
+<script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

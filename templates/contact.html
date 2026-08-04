@@ -1,10 +1,6 @@
-<?php
-$pageTitle = "Contact";
-require_once "config.php";
-require_once "includes/header.php";
-
-$sent = isset($_POST["name"]);
-?>
+{% extends "base.html" %}
+{% block title %}EduPortal - Contact{% endblock %}
+{% block content %}
 <h4 class="section-title mb-1"><i class="bi bi-envelope text-primary me-2"></i>Contact Us</h4>
 <p class="section-sub mb-4">We are here to help. Reach out to the EduPortal office.</p>
 
@@ -30,10 +26,10 @@ $sent = isset($_POST["name"]);
     <div class="col-lg-7">
         <div class="card p-4">
             <h6 class="fw-bold mb-3">Send a message</h6>
-            <?php if ($sent): ?>
-                <div class="alert alert-success alert-auto-dismiss"><i class="bi bi-check-circle me-1"></i>Thank you, <?php echo htmlspecialchars($_POST['name']); ?>! Your message has been recorded.</div>
-            <?php endif; ?>
-            <form method="POST" action="contact.php">
+            {% if sent %}
+                <div class="alert alert-success alert-auto-dismiss"><i class="bi bi-check-circle me-1"></i>Thank you, {{ sent_name }}! Your message has been recorded.</div>
+            {% endif %}
+            <form method="POST" action="{{ url_for('contact') }}">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Your Name</label>
@@ -59,4 +55,4 @@ $sent = isset($_POST["name"]);
         </div>
     </div>
 </div>
-<?php require_once "includes/footer.php"; ?>
+{% endblock %}

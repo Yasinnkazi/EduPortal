@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}EduPortal - Dashboard{% endblock %}
+{% block content %}
+
+{% if is_admin %}
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h4 class="section-title mb-0"><i class="bi bi-shield-lock text-primary me-2"></i>Admin Dashboard</h4>
+            <p class="section-sub mb-0">Welcome back, {{ session.get('admin_name') }} ({{ session.get('admin_role') }})</p>
+        </div>
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4"><div class="stat-tile"><div class="stat-num">{{ students_list|length }}</div><div class="text-muted small"><i class="bi bi-people me-1"></i>Total Students</div></div></div>
+        <div class="col-md-4"><div class="stat-tile"><div class="stat-num">{{ courses_list|length }}</div><div class="text-muted small"><i class="bi bi-journal-bookmark me-1"></i>Total Courses</div></div></div>
+        <div class="col-md-4"><div class="stat-tile"><div class="stat-num">{{ faculty_list|length }}</div><div class="text-muted small"><i class="bi bi-person-badge me-1"></i>Faculty Members</div></div></div>
+    </div>
+
+    <ul class="nav nav-pills mb-3" id="admTabs" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tabStudents" type="button"><i class="bi bi-people me-1"></i>Student List</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabCourses" type="button"><i class="bi bi-journal-bookmark me-1"></i>Course List</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabFaculty" type="button"><i class="bi bi-person-badge me-1"></i>Faculty List</button></li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tabStudents">
+            <div class="card"><div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead><tr><th>Roll No</th><th>Name</th><th>Course</th><th>Semester</th><th>Email</th><th>City</th></tr></thead>
+                        <tbody>
+                        {% for s in students_list %}
+                            <tr>
+                                <td class="fw-semibold">{{ s.roll_no }}</td>
+                                <td>{{ s.name }}</td>
+                                <td>{{ s.course_name or "N/A" }}</td>
+                                <td>{{ s.semester }}</td>
+                                <td class="small">{{ s.email }}</td>
+                                <td>{{ s.city }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div></div>
+        </div>
+
+        <div class="tab-pane fade" id="tabCourses">
+            <div class="row g-3">
+            {% for c in courses_list %}
+                <div class="col-md-4 col-sm-6">
+                    <div class="card card-hover h-100"><div class="card-body">
+                        <span class="badge text-bg-primary mb-2">{{ c.code }}</span>
+                        <h6 class="fw-bold mb-1">{{ c.name }}</h6>
+                        <div class="small text-muted">{{ c.department }} &middot; {{ c.duration }}</div>
+                    </div></div>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tabFaculty">
+            <div class="card"><div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead><tr><th>Name</th><th>Designation</th><th>Department</th><th>Qualification</th><th>Email</th></tr></thead>
+                        <tbody>
+                        {% for f in faculty_list %}
+                            <tr>
+                                <td class="fw-semibold">{{ f.name }}</td>
+                                <td>{{ f.designation }}</td>
+                                <td>{{ f.department }}</td>
+                                <td class="small">{{ f.qualification }}</td>
+                                <td class="small">{{ f.email }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div></div>
+        </div>
+    </div>
+
+{% elif is_student and student_info %}
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h4 class="section-title mb-0"><i class="bi bi-person-badge text-primary me-2"></i>Student Dashboard</h4>
+            <p class="section-sub mb-0">Welcome, {{ student_info.name }}</p>
+        </div>
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-3">{{ student_info.name[0]|upper }}</div>
+                        <div>
+                            <h5 class="fw-bold mb-0">{{ student_info.name }}</h5>
+                            <span class="badge text-bg-primary">{{ student_info.roll_no }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row g-2 small">
+                        <div class="col-6"><span class="text-muted">Course</span><br><b>{{ student_info.course_name or "N/A" }}</b></div>
+                        <div class="col-6"><span class="text-muted">Semester</span><br><b>{{ student_info.semester }}</b></div>
+                        <div class="col-6"><span class="text-muted">Email</span><br><b>{{ student_info.email }}</b></div>
+                        <div class="col-6"><span class="text-muted">Phone</span><br><b>{{ student_info.phone }}</b></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-white fw-semibold"><i class="bi bi-award text-primary me-2"></i>My Recent Results</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>Subject</th><th>Exam</th><th>Semester</th><th>Marks</th><th>Percentage</th><th>Grade</th></tr></thead>
+                    <tbody>
+                    {% for r in my_results %}
+                        <tr>
+                            <td class="fw-semibold">{{ r.subject }}</td>
+                            <td class="small">{{ r.exam_type }}</td>
+                            <td>{{ r.semester }}</td>
+                            <td>{{ r.marks }} / {{ r.total }}</td>
+                            <td>{{ r.percentage|pct }}%</td>
+                            <td><span class="badge text-bg-success">{{ r.grade }}</span></td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="6" class="text-muted text-center py-4">No results published yet.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}

@@ -2,20 +2,19 @@
 -- EduPortal - Educational Student Management Portal
 -- Database script for SQL Injection demonstration lab (classroom use only)
 --
+-- SQLite 3 compatible schema + seed data (consumed by database.py).
+--
 -- WARNING: This database powers an intentionally vulnerable application
 -- designed ONLY for educational demonstrations of SQL Injection in a
 -- controlled laboratory environment. Never deploy on a public server.
 -- ============================================================
-
-CREATE DATABASE IF NOT EXISTS eduportal CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE eduportal;
 
 -- ------------------------------------------------------------
 -- Table: students
 -- ------------------------------------------------------------
 DROP TABLE IF EXISTS students;
 CREATE TABLE students (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   roll_no VARCHAR(20) UNIQUE NOT NULL,
   name VARCHAR(100) NOT NULL,
   username VARCHAR(50) UNIQUE NOT NULL,
@@ -34,7 +33,7 @@ CREATE TABLE students (
 -- ------------------------------------------------------------
 DROP TABLE IF EXISTS admins;
 CREATE TABLE admins (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   username VARCHAR(50) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
   full_name VARCHAR(100) NOT NULL,
@@ -47,7 +46,7 @@ CREATE TABLE admins (
 -- ------------------------------------------------------------
 DROP TABLE IF EXISTS courses;
 CREATE TABLE courses (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   code VARCHAR(20) UNIQUE NOT NULL,
   name VARCHAR(100) NOT NULL,
   department VARCHAR(80),
@@ -62,7 +61,7 @@ CREATE TABLE courses (
 -- ------------------------------------------------------------
 DROP TABLE IF EXISTS faculty;
 CREATE TABLE faculty (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   name VARCHAR(100) NOT NULL,
   designation VARCHAR(80),
   department VARCHAR(80),
@@ -76,7 +75,7 @@ CREATE TABLE faculty (
 -- ------------------------------------------------------------
 DROP TABLE IF EXISTS results;
 CREATE TABLE results (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   roll_no VARCHAR(20) NOT NULL,
   subject VARCHAR(100) NOT NULL,
   marks INT,

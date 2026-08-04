@@ -38,7 +38,7 @@ I would like to express my sincere gratitude to my project guide and the Departm
 
 Web applications store and serve data through databases. When user-supplied input is inserted directly into a SQL query without any sanitisation, an attacker can modify the query's structure and gain unauthorised access to data. This vulnerability is called **SQL Injection**.
 
-**EduPortal** is a realistic college student management portal developed in PHP and MySQL that intentionally contains SQL Injection vulnerabilities. The portal provides student login, admin login, student search by roll number, a result portal, and administrative dashboards - exactly like a real university ERP. Because the application is built with direct SQL concatenation (no prepared statements, no escaping), it forms a safe, self-contained laboratory for teaching students how SQL Injection works, how attacks are crafted, and how the same queries can be rewritten safely.
+**EduPortal** is a realistic college student management portal developed in Python with the Flask framework and SQLite that intentionally contains SQL Injection vulnerabilities. The portal provides student login, admin login, student search by roll number, a result portal, and administrative dashboards - exactly like a real university ERP. Because the application is built with direct SQL concatenation (no prepared statements, no escaping), it forms a safe, self-contained laboratory for teaching students how SQL Injection works, how attacks are crafted, and how the same queries can be rewritten safely.
 
 This report documents the design, database schema, workflows, vulnerable code patterns, attack demonstrations, and the educational value of the project.
 
@@ -47,19 +47,19 @@ This report documents the design, database schema, workflows, vulnerable code pa
 ## 1. Introduction
 
 ### 1.1 Background
-Databases are the backbone of most web applications. PHP + MySQL remains one of the most widely taught web stacks in undergraduate Computer Science programmes. Security, however, is often neglected in basic CRUD tutorials, and students first learn "the way it is usually done" - building SQL strings by concatenating variables.
+Databases are the backbone of most web applications. Python + Flask is one of the most widely taught web stacks in undergraduate Computer Science programmes. Security, however, is often neglected in basic CRUD tutorials, and students first learn "the way it is usually done" - building SQL strings by concatenating variables.
 
 ### 1.2 Problem Statement
 When a developer writes:
 
-```php
-$sql = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
+```python
+sql = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
 ```
 
-the variables `$username` and `$password` become part of the SQL grammar. A malicious user can type input such as `' OR '1'='1` which changes the meaning of the entire query. This single mistake - SQL Injection - consistently ranks in the OWASP Top 10 of web application risks.
+the variables `username` and `password` become part of the SQL grammar. A malicious user can type input such as `' OR '1'='1` which changes the meaning of the entire query. This single mistake - SQL Injection - consistently ranks in the OWASP Top 10 of web application risks.
 
 ### 1.3 The Project
-EduPortal provides a controlled environment where the vulnerability is **intentional and isolated** (local XAMPP server, seeded dummy data, no real information), so students can:
+EduPortal provides a controlled environment where the vulnerability is **intentional and isolated** (local Flask server, seeded dummy data, no real information), so students can:
 
 1. See exactly how user input flows into a SQL query.
 2. Practise crafting injection payloads.
@@ -75,7 +75,7 @@ The scope is limited to a classroom / laboratory setting. The project does not c
 
 The main objectives of this project are:
 
-1. To build a realistic, professional-looking student management portal using PHP 8 and MySQL.
+1. To build a realistic, professional-looking student management portal using Python and Flask.
 2. To implement the portal using **intentionally vulnerable** SQL queries (direct string concatenation) for classroom demonstration.
 3. To demonstrate SQL Injection login bypass techniques (`OR` and comment-based).
 4. To demonstrate **UNION-based** data extraction through search features.
@@ -89,16 +89,17 @@ The main objectives of this project are:
 ### 3.1 Hardware Requirements
 - Processor: Intel/AMD, 1 GHz or faster
 - RAM: 2 GB minimum (4 GB recommended)
-- Disk space: 500 MB free
+- Disk space: 200 MB free
 - Display: 1024x768 or higher
 
 ### 3.2 Software Requirements
-- Windows 10/11 (or any OS supported by XAMPP)
-- XAMPP (Apache 2.4, PHP 8.x, MySQL/MariaDB)
+- Windows 10/11 / Linux / macOS (any OS running Python)
+- Python 3.10 or higher
+- Flask 3.x (installed via pip)
 - Any modern web browser (Chrome, Edge, Firefox)
 
 ### 3.3 User Requirements
-- Basic knowledge of HTML, PHP and SQL
+- Basic knowledge of Python and SQL
 - Understanding of how a web request reaches a database
 
 ---
@@ -107,21 +108,21 @@ The main objectives of this project are:
 
 | Software       | Version | Purpose                       |
 |----------------|---------|-------------------------------|
-| PHP            | 8.2     | Server-side backend language  |
-| MySQL          | 8.0/8.4 | Relational database           |
-| Apache         | 2.4     | Web server                    |
-| XAMPP          | 8.2     | Bundled local server stack    |
+| Python         | 3.11    | Programming language          |
+| Flask          | 3.1     | Web framework (backend)       |
+| SQLite         | 3.x     | Embedded relational database  |
+| Werkzeug       | 3.x     | WSGI server (ships with Flask)|
 | Bootstrap 5    | 5.3     | Responsive UI framework       |
 | Bootstrap Icons| 1.11    | Icon set                      |
 | HTML5 / CSS3   | -       | Page structure & styling      |
 | JavaScript     | ES6     | Small client-side helpers     |
-| phpMyAdmin     | -       | Optional GUI for DB import    |
+| Jinja2         | 3.x     | Templating engine (Flask)     |
 
 ---
 
 ## 5. Database Design
 
-Database name: `eduportal`
+Database: `database.db` (SQLite file, auto-created from `database/eduportal.sql`)
 
 ### 5.1 Entity Relationship
 
@@ -135,7 +136,7 @@ courses ─1───* students ─1───* results
 ### 5.2 Table: `students`
 | Field     | Type          | Notes               |
 |-----------|---------------|---------------------|
-| id        | INT AI PK     |                     |
+| id        | INTEGER PK AI |                     |
 | roll_no   | VARCHAR(20) UQ| e.g. BCS2026-001    |
 | name      | VARCHAR(100)  |                     |
 | username  | VARCHAR(50) UQ| login name          |
@@ -150,7 +151,7 @@ courses ─1───* students ─1───* results
 ### 5.3 Table: `admins`
 | Field    | Type          |
 |----------|---------------|
-| id       | INT AI PK     |
+| id       | INTEGER PK AI |
 | username | VARCHAR(50) UQ|
 | password | VARCHAR(255)  |
 | full_name| VARCHAR(100)  |
@@ -160,7 +161,7 @@ courses ─1───* students ─1───* results
 ### 5.4 Table: `courses`
 | Field      | Type          |
 |------------|---------------|
-| id         | INT AI PK     |
+| id         | INTEGER PK AI |
 | code       | VARCHAR(20) UQ|
 | name       | VARCHAR(100)  |
 | department | VARCHAR(80)   |
@@ -172,7 +173,7 @@ courses ─1───* students ─1───* results
 ### 5.5 Table: `faculty`
 | Field        | Type         |
 |--------------|--------------|
-| id           | INT AI PK    |
+| id           | INTEGER PK AI|
 | name         | VARCHAR(100) |
 | designation  | VARCHAR(80)  |
 | department   | VARCHAR(80)  |
@@ -183,7 +184,7 @@ courses ─1───* students ─1───* results
 ### 5.6 Table: `results`
 | Field     | Type         |
 |-----------|--------------|
-| id        | INT AI PK    |
+| id        | INTEGER PK AI|
 | roll_no   | VARCHAR(20)  |
 | subject   | VARCHAR(100) |
 | marks     | INT          |
@@ -207,25 +208,25 @@ courses ─1───* students ─1───* results
 ## 6. System Workflow
 
 ### 6.1 Home Flow
-1. User opens `http://localhost/EduPortal/`.
-2. `index.php` loads; PHP queries MySQL for course & faculty counts and lists.
+1. User opens `http://127.0.0.1:5000/`.
+2. `index` route runs; Flask queries SQLite for course & faculty counts and lists.
 3. Banner, notices, course cards, faculty preview and disclaimer render.
 
 ### 6.2 Login Flow
-1. User submits username/password at `student-login.php`.
-2. PHP builds SQL by concatenation and runs it with `mysqli_query`.
-3. If rows are returned, a session is created and the user is redirected to `dashboard.php`.
+1. User submits username/password at `/student-login`.
+2. Flask builds SQL by concatenation and runs it with `cursor.execute(sql)`.
+3. If rows are returned, a session is created and the user is redirected to `/dashboard`.
 4. If not, an "Invalid credentials" message is shown.
 
 ### 6.3 Search Flow
-1. User enters a roll number at `student-search.php`.
+1. User enters a roll number at `/student-search`.
 2. The concatenated `SELECT` runs; a student card or "not found" message renders.
 3. The executed query is displayed in a highlighted SQL box for learning.
 
 ### 6.4 Result Flow
-1. User enters a roll number at `results.php`.
+1. User enters a roll number at `/results`.
 2. All matching result rows are fetched.
-3. PHP computes totals, percentage and grade, then renders a table + summary tiles.
+3. Flask computes totals, percentage and grade, then renders a table + summary tiles.
 
 ### 6.5 Dashboard Flow
 - **Student dashboard:** profile card + list of the student's results.
@@ -237,9 +238,9 @@ courses ─1───* students ─1───* results
 
 Screenshots for the report can be captured as follows (the application is running):
 
-1. **Home page** - `http://localhost/EduPortal/`
-2. **Student login** - `http://localhost/EduPortal/student-login.php`
-3. **Admin login** - `http://localhost/EduPortal/admin-login.php`
+1. **Home page** - `http://127.0.0.1:5000/`
+2. **Student login** - `http://127.0.0.1:5000/student-login`
+3. **Admin login** - `http://127.0.0.1:5000/admin-login`
 4. **Student search (result shown)** - submit `BCS2026-001`
 5. **Result portal** - submit `BCS2026-001`
 6. **Student dashboard** - login with `aarav01` / `student123`
@@ -255,16 +256,18 @@ Screenshots for the report can be captured as follows (the application is runnin
 ### 8.1 The Vulnerable Pattern
 All database access in EduPortal follows the same pattern:
 
-```php
-$username = $_POST["username"];
-$password = $_POST["password"];
+```python
+# app.py - student login (INTENTIONALLY VULNERABLE)
+username = request.form.get("username", "")
+password = request.form.get("password", "")
 
-// VULNERABLE - direct concatenation, no escaping, no prepared statement
-$sql = "SELECT * FROM students
-        WHERE username = '" . $username . "'
-        AND password = '" . $password . "'";
+sql = ("SELECT * FROM students WHERE username = '"
+       + username
+       + "' AND password = '"
+       + password
+       + "'")
 
-$result = mysqli_query($conn, $sql);
+rows = db.execute(sql).fetchall()   # no escaping, no parameters
 ```
 
 ### 8.2 Normal Execution
@@ -275,7 +278,7 @@ SELECT * FROM students
 WHERE username = 'aarav01' AND password = 'student123';
 ```
 
-MySQL matches exactly one row - login succeeds.
+SQLite matches exactly one row - login succeeds.
 
 ### 8.3 Attack - OR Injection
 User enters: `username = anything`, `password = ' OR '1'='1`
@@ -304,13 +307,13 @@ The `--` comment removes the password check. Login bypassed.
 User enters the following in the Result Portal roll number:
 
 ```
-BCS2026-001' UNION SELECT id, username, password, 1, 2, 3.50, 'A', 'Exam', semester FROM students WHERE '1'='1
+BCS2026-001' UNION SELECT id, username, username || ' : ' || password, 1, 2, 3.50, 'A', 'Exam', semester FROM students WHERE '1'='1
 ```
 
 ```sql
 SELECT * FROM results WHERE roll_no = 'BCS2026-001'
 UNION
-SELECT id, username, password, 1, 2, 3.50, 'A', 'Exam', semester
+SELECT id, username, username || ' : ' || password, 1, 2, 3.50, 'A', 'Exam', semester
 FROM students WHERE '1'='1'
 ORDER BY semester DESC, subject ASC;
 ```
@@ -318,21 +321,19 @@ ORDER BY semester DESC, subject ASC;
 The `UNION` appends rows from the `students` table to the `results` output, leaking every username and password through the result table.
 
 ### 8.6 The Fix (Prepared Statements)
-```php
-$stmt = $conn->prepare("SELECT * FROM students WHERE username = ? AND password = ?");
-$stmt->bind_param("ss", $username, $password);
-$stmt->execute();
-$result = $stmt->get_result();
+```python
+sql = "SELECT * FROM students WHERE username = ? AND password = ?"
+rows = db.execute(sql, (username, password)).fetchall()
 ```
 
-Prepared statements separate the SQL structure from the data. User input can never change the meaning of the query, so injection is impossible.
+Prepared statements separate the SQL structure from the data (`?` placeholders + bound parameters). User input can never change the meaning of the query, so injection is impossible.
 
 ---
 
 ## 9. Educational Purpose
 
 1. **Hands-on security learning:** students see real vulnerabilities, not just theory.
-2. **Safe environment:** local XAMPP + dummy data means no real harm.
+2. **Safe environment:** local Flask + dummy data means no real harm.
 3. **Visual feedback:** every page displays the exact query executed.
 4. **Complete narrative:** a single small app demonstrates multiple injection classes (login bypass, comment injection, UNION extraction).
 5. **Fix-forward approach:** the report and README show the secure replacement code.
@@ -343,11 +344,11 @@ Prepared statements separate the SQL structure from the data. User input can nev
 ## 10. Advantages
 
 - Realistic ERP-style interface (modern, professional, responsive).
-- Zero cloud dependencies - runs entirely offline on XAMPP.
+- Zero external services - SQLite is embedded, nothing to install except Flask.
 - Lightweight and fast; no external libraries beyond Bootstrap.
 - Clearly isolated lab data - no risk to real information.
 - Educational aids built in (executed-SQL display, demo credentials).
-- Easy to reset: re-import `eduportal.sql`.
+- Easy to reset: delete `database.db` and restart to re-seed.
 
 ---
 
@@ -382,9 +383,9 @@ EduPortal successfully fulfils its objective of providing a realistic, classroom
 1. OWASP Foundation, "OWASP Top 10 - A03:2021 Injection", https://owasp.org/Top10/
 2. OWASP, "SQL Injection Prevention Cheat Sheet", https://cheatsheetseries.owasp.org/
 3. W3Schools, "SQL Injection", https://www.w3schools.com/sql/sql_injection.asp
-4. PHP Manual, "mysqli - Prepared Statements", https://www.php.net/manual/en/mysqli.quickstart.prepared-statements.php
-5. MySQL Reference Manual, "SELECT - UNION", https://dev.mysql.com/doc/refman/8.0/en/union.html
-6. Apache Friends, "XAMPP Documentation", https://www.apachefriends.org/
+4. Flask Documentation, "Application Setup / Database", https://flask.palletsprojects.com/
+5. Python Documentation, "sqlite3 - DB-API 2.0 interface", https://docs.python.org/3/library/sqlite3.html
+6. SQLite Documentation, "UNION / SELECT", https://sqlite.org/lang_select.html
 
 ---
 

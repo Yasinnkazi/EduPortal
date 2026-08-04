@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}EduPortal - Courses{% endblock %}
+{% block content %}
+<h4 class="section-title mb-1"><i class="bi bi-journal-bookmark text-primary me-2"></i>Courses Offered</h4>
+<p class="section-sub mb-4">Explore the academic programmes offered by EduPortal.</p>
+
+<div class="row g-3">
+    {% for c in courses %}
+    <div class="col-md-4 col-sm-6">
+        <div class="card card-hover h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge text-bg-primary">{{ c.code }}</span>
+                    <span class="text-muted small"><i class="bi bi-clock me-1"></i>{{ c.duration }}</span>
+                </div>
+                <h6 class="fw-bold mb-1">{{ c.name }}</h6>
+                <div class="small text-muted mb-2"><i class="bi bi-diagram-3 me-1"></i>{{ c.department }}</div>
+                <p class="small text-muted mb-3">{{ c.description }}</p>
+                <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                    <span class="small text-muted"><i class="bi bi-people me-1"></i>{{ c.seats }} seats</span>
+                    <span class="fw-semibold text-primary">Rs. {{ c.fee|money }}/yr</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -18,47 +18,48 @@ Author: **Mohd Yasin Kazi** - TY B.Sc. Computer Science
                                         │  HTTP (GET / POST)
                                         ▼
                        ┌────────────────────────────────────┐
-                       │           Apache (XAMPP)          │
-                       │          Serves .php pages         │
+                       │       Flask (Werkzeug WSGI)       │
+                       │    app.py -> all routes           │
+                       │    templates/ -> Jinja2 pages      │
                        └────────────────┬───────────────────┘
                                         │
                        ┌────────────────▼───────────────────┐
-                       │             PHP 8 Engine          │
-                       │   config.php -> mysqli connection  │
-                       │   pages -> direct SQL concatenation│
+                       │          database.py              │
+                       │   get_db() -> sqlite3 connection  │
+                       │   init_db() -> schema + seed      │
                        └────────────────┬───────────────────┘
                                         │
                        ┌────────────────▼───────────────────┐
-                       │             MySQL (3306)           │
-                       │   students / admins / courses      │
-                       │   faculty / results                │
+                       │        SQLite (database.db)       │
+                       │   students / admins / courses     │
+                       │   faculty / results               │
                        └────────────────────────────────────┘
 ```
 
 **Components:**
-- `config.php` - DB connection + session start
-- `includes/header.php` / `footer.php` - shared navbar & footer
+- `app.py` - all Flask routes + vulnerable queries
+- `database.py` - SQLite connection + auto-seed from `database/eduportal.sql`
+- `templates/` - Jinja2 templates (base.html + 10 pages)
 - `assets/` - CSS, JS, images, vendored Bootstrap (offline)
-- `database/eduportal.sql` - schema + seed data
+- `api/index.py` + `vercel.json` - optional Vercel (Python) deployment
 
 ---
 
 ## 2. Database Flow
 
 ```
-eduportal.sql
-   │  CREATE DATABASE eduportal
-   │  CREATE TABLE students / admins / courses / faculty / results
+database/eduportal.sql
+   │  DROP + CREATE TABLE students / admins / courses / faculty / results
    │  INSERT seed data (22 students, 5 faculty, 5 admins, 6 courses, 81 results)
    ▼
-MySQL server (localhost:3306)
+database.py -> init_db()  (runs on app startup, idempotent)
+   │
+   ▼
+SQLite file: database.db  (or /tmp/eduportal.db on Vercel)
    ▲
-   │  mysqli_connect("localhost","root","","eduportal")
-   │  $conn = mysqli_connect(...)  in config.php
+   │  get_db() returns a new sqlite3 connection per request
    ▼
-Every PHP page opens a NEW connection per request (no pooling)
-   ▼
-Queries run directly on the connection, results returned to PHP
+app.py routes run queries directly on the connection
 ```
 
 **Table relationships:**
@@ -71,23 +72,23 @@ Queries run directly on the connection, results returned to PHP
 ## 3. Login Flow (Student)
 
 ```
-User submits username + password (POST)
+User submits username + password (POST /student-login)
           │
           ▼
-student-login.php
-   $sql = "SELECT * FROM students
-           WHERE username = '$username' AND password = '$password'"
-   $result = mysqli_query($conn, $sql);        ← VULNERABLE
+app.py -> student_login()
+   sql = "SELECT * FROM students
+          WHERE username = '" + username + "' AND password = '" + password + "'"
+   rows = cursor.execute(sql).fetchall()        ← VULNERABLE
           │
-          ├── if rows > 0 ──► set $_SESSION (student_id, name, roll)
+          ├── if rows > 0 ──► session['student_id'] = id, name, roll
           │                        │
           │                        ▼
-          │                  header("Location: dashboard.php")
+          │                  redirect -> /dashboard
           │                        │
           │                        ▼
-          │                  dashboard.php loads student profile + results
+          │                  dashboard route loads profile + results
           │
-          └── if 0 rows ──► display "Invalid username or password"
+          └── if 0 rows / error ──► "Invalid username or password"
 ```
 
 **Attack:** `password = ' OR '1'='1` makes the WHERE clause always true.
@@ -97,17 +98,17 @@ student-login.php
 ## 4. Search Flow (Student Search)
 
 ```
-User submits Roll Number (POST)
+User submits Roll Number (POST /student-search)
           │
           ▼
-student-search.php
-   $sql = "SELECT s.*, c.name AS course_name
-           FROM students s
-           LEFT JOIN courses c ON s.course_id = c.id
-           WHERE s.roll_no = '$roll'"              ← VULNERABLE
+app.py -> student_search()
+   sql = "SELECT s.*, c.name AS course_name
+          FROM students s
+          LEFT JOIN courses c ON s.course_id = c.id
+          WHERE s.roll_no = '" + roll + "'"          ← VULNERABLE
           │
           ▼
-   mysqli_query($conn, $sql)
+   cursor.execute(sql).fetchall()
           │
           ├── found ──► display Name / Course / Semester / Email card
           └── not found / error ──► "No student found"
@@ -120,16 +121,16 @@ The executed SQL is shown in a `sql-box` on the page for teaching.
 ## 5. Result Flow
 
 ```
-User submits Roll Number (POST)
+User submits Roll Number (POST /results)
           │
           ▼
-results.php
-   $sql = "SELECT * FROM results
-           WHERE roll_no = '$roll'
-           ORDER BY semester DESC, subject ASC"    ← VULNERABLE
+app.py -> results()
+   sql = "SELECT * FROM results
+          WHERE roll_no = '" + roll + "'
+          ORDER BY semester DESC, subject ASC"        ← VULNERABLE
           │
           ▼
-   mysqli_query($conn, $sql)
+   cursor.execute(sql).fetchall()
           │
           ├── rows > 0 ──► build summary (subjects, marks, % , grade)
           │                    └── render table: Subject/Marks/%/Grade
@@ -143,13 +144,13 @@ results.php
 ## 6. SQL Query Flow (Vulnerable Pattern)
 
 ```
-$_POST['roll_no']   =  "BCS2026-001' UNION SELECT ... -- "
+POST roll_no   =  "BCS2026-001' UNION SELECT ... -- "
         │
         │  direct concatenation (NO escaping)
         ▼
-$sql = "SELECT * FROM results WHERE roll_no = '" . $roll . "' ..."
+sql = "SELECT * FROM results WHERE roll_no = '" + roll + "' ..."
         ▼
-MySQL parses the attacker's extra SQL as part of the query
+SQLite parses the attacker's extra SQL as part of the query
         ▼
 Attacker controls the WHERE clause / result set / tables read
 ```
@@ -162,28 +163,33 @@ Attacker controls the WHERE clause / result set / tables read
 
 ```
 EduPortal/
-├── index.php              Home / landing
-├── about.php              About page
-├── courses.php            Course list (DB)
-├── faculty.php            Faculty list (DB)
-├── student-login.php      Vulnerable student login
-├── admin-login.php        Vulnerable admin login
-├── student-search.php     Vulnerable roll-number search
-├── results.php            Vulnerable result lookup
-├── dashboard.php          Student / Admin dashboard
-├── contact.php            Contact page
-├── logout.php             Clears session
-├── config.php             DB connection
-├── includes/              header.php, footer.php
+├── app.py                  Flask application (all routes)
+├── database.py             SQLite connection + auto-seed
+├── requirements.txt        Flask dependency
+├── vercel.json             Vercel Python runtime config
+├── api/
+│   └── index.py            WSGI entry point (Vercel)
+├── templates/
+│   ├── base.html           Navbar + footer layout
+│   ├── index.html          Home / landing
+│   ├── about.html          About page
+│   ├── courses.html        Course list (DB)
+│   ├── faculty.html        Faculty list (DB)
+│   ├── student_login.html  Vulnerable student login
+│   ├── admin_login.html    Vulnerable admin login
+│   ├── student_search.html Vulnerable roll-number search
+│   ├── results.html        Vulnerable result lookup
+│   ├── dashboard.html      Student / Admin dashboard
+│   └── contact.html        Contact page
 ├── assets/
-│   ├── css/style.css      App styles
-│   ├── js/script.js       Small JS helpers
-│   ├── images/logo.svg    Logo
-│   └── vendor/            Bootstrap 5 + Bootstrap Icons (offline)
-├── database/eduportal.sql Database dump + seed data
-├── README.md              Setup guide
-├── REPORT.md              ~20 page project report
-├── PPT.md                 10 presentation slides
-├── VIVA.md                30 viva questions & answers
-└── WORKFLOW.md            This document
+│   ├── css/style.css       App styles
+│   ├── js/script.js        Small JS helpers
+│   ├── images/logo.svg     Logo
+│   └── vendor/             Bootstrap 5 + Bootstrap Icons (offline)
+├── database/eduportal.sql  Schema + seed data
+├── README.md               Setup guide
+├── REPORT.md               Full project report
+├── PPT.md                  10 presentation slides
+├── VIVA.md                 30 viva questions & answers
+└── WORKFLOW.md             This document
 ```

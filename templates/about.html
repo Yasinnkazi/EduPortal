@@ -1,8 +1,6 @@
-<?php
-$pageTitle = "About";
-require_once "config.php";
-require_once "includes/header.php";
-?>
+{% extends "base.html" %}
+{% block title %}EduPortal - About{% endblock %}
+{% block content %}
 <div class="row g-4">
     <div class="col-lg-8">
         <h4 class="section-title mb-3"><i class="bi bi-info-circle text-primary me-2"></i>About EduPortal</h4>
@@ -22,15 +20,15 @@ require_once "includes/header.php";
             <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-filetype-html text-primary d-block fs-4"></i>HTML5</div></div>
             <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-filetype-css text-primary d-block fs-4"></i>CSS3</div></div>
             <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-bootstrap text-primary d-block fs-4"></i>Bootstrap 5</div></div>
-            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-filetype-php text-primary d-block fs-4"></i>PHP 8</div></div>
-            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-database text-primary d-block fs-4"></i>MySQL</div></div>
-            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-display text-primary d-block fs-4"></i>XAMPP</div></div>
+            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-filetype-py text-primary d-block fs-4"></i>Python 3</div></div>
+            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-database text-primary d-block fs-4"></i>SQLite</div></div>
+            <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-flask text-primary d-block fs-4"></i>Flask</div></div>
             <div class="col-6 col-md-3"><div class="border rounded p-2 text-center small"><i class="bi bi-filetype-js text-primary d-block fs-4"></i>JavaScript</div></div>
         </div>
     </div>
     <div class="col-lg-4">
         <div class="card p-4">
-            <div class="text-center mb-3"><img src="assets/images/logo.svg" width="72" height="72" alt="EduPortal"></div>
+            <div class="text-center mb-3"><img src="{{ url_for('static', filename='images/logo.svg') }}" width="72" height="72" alt="EduPortal"></div>
             <h6 class="fw-bold text-center">EduPortal Security Lab</h6>
             <p class="small text-muted text-center">Built as an academic demonstration project.</p>
             <hr>
@@ -38,7 +36,7 @@ require_once "includes/header.php";
                 <div class="d-flex justify-content-between py-1"><span class="text-muted">Author</span><b>Mohd Yasin Kazi</b></div>
                 <div class="d-flex justify-content-between py-1"><span class="text-muted">Class</span><b>TY B.Sc. Computer Science</b></div>
                 <div class="d-flex justify-content-between py-1"><span class="text-muted">Purpose</span><b>SQLi Education</b></div>
-                <div class="d-flex justify-content-between py-1"><span class="text-muted">Server</span><b>XAMPP / Apache</b></div>
+                <div class="d-flex justify-content-between py-1"><span class="text-muted">Server</span><b>Flask (Python)</b></div>
             </div>
         </div>
 
@@ -48,4 +46,4 @@ require_once "includes/header.php";
         </div>
     </div>
 </div>
-<?php require_once "includes/footer.php"; ?>
+{% endblock %}
